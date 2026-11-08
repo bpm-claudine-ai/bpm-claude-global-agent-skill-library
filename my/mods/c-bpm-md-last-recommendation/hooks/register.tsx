@@ -61,7 +61,7 @@ export const register: Register = on => {
     const m = text.match(/^\*\*([^*]+):\*\*\s*(.*)$/)
     const who = m?.[1] ?? ''
     const rest = (m?.[2] ?? text).replace(/\*\*/g, '')
-    const [step, why] = rest.split(/\s(?=ask-matt )/)
+    const [step, why] = rest.split(/\s(?=ask-matt |Grund: )/)
     return (
       <Box flexDirection="column">
         {who && <Text bold color={who.startsWith('Robert') ? 'yellow' : 'green'}>{who}</Text>}

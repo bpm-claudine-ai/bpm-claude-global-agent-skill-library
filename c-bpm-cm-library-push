@@ -105,6 +105,10 @@ log_verbose "Categories: ${CATEGORIES[*]}"
 load_sync_state "$SYNC_STATE_FILE"
 prune_sync_state "$SOURCE_DIR"
 
+# Host variant (#195): the next-step skill this host does not install is never
+# pushed from here and never removed from the repo by --clean.
+HOST_SKIPPED="$(host_skipped_item "$REPO_DIR")"
+
 echo "c-bpm-cm-library-push v$VERSION"
 echo ""
 
@@ -167,6 +171,7 @@ for category in "${CATEGORIES[@]}"; do
       item_name=$(basename "$item_dir")
       repo_item="$REPO_CAT_DIR/$item_name"
       item_key="$category/$item_name"
+      [[ "$item_key" == "$HOST_SKIPPED" ]] && continue
 
       if [[ ! -d "$repo_item" ]]; then
         echo "  + $item_key (new)"
@@ -224,6 +229,7 @@ for category in "${CATEGORIES[@]}"; do
       [[ -d "$repo_item_dir" ]] || continue
       item_name=$(basename "$repo_item_dir")
       local_item="$LOCAL_CAT_DIR/$item_name"
+      [[ "$category/$item_name" == "$HOST_SKIPPED" ]] && continue
 
       if [[ ! -d "$local_item" ]]; then
         if [[ "$CLEAN" -eq 1 ]]; then

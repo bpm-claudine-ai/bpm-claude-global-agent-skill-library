@@ -1,4 +1,4 @@
-# Real next-step lines from Claude Code transcripts (skill c-bpm-sk-next-step).
+# Real next-step lines from Claude Code transcripts (skills c-bpm-sk-next-step and c-bpm-sk-next-step-admin).
 # Column 1: the /command the after-clear hook must prefill (empty: none). Column 2: the line.
 # Both parsers of the line read this corpus: my/hooks/c-bpm-hk-ask-matt-after-clear.sh
 # and my/mods/c-bpm-md-last-recommendation/hooks/register.tsx.
@@ -31,3 +31,5 @@
 	**Claude ist dran, du musst nichts tun:** Sobald Codex fertig ist, trägt Claude die Ergebnisse ein und startet `/to-spec`. Nächster Check um 18:43 (Job 7746b45a).
 	**Claude ist dran, du musst nichts tun:** Sobald Codex fertig ist, trägt Claude die Entscheidungen ein und startet `/to-spec`. Nächster Check um 18:53 (Job 7746b45a).
 	**Claude ist dran, du musst nichts tun:** Ich warte auf conv-5.
+	**Robert, du bist dran:** Im Contabo-Panel den Reverse-DNS-Eintrag von contabo04 auf `contabo04.bpmspace.com` setzen. Grund: Das ist das Letzte, was in #3 fehlt, und #1 wartet auf #3.
+	**Robert, du bist dran:** Im Contabo-Panel den Reverse-DNS-Eintrag von `vmd190129.contaboserver.net` auf `contabo04.bpmspace.com` ändern. Grund: Der Contabo-API-Nutzer darf nur lesen, Claude kann das also nicht selbst ändern, und solange #3 offen ist, bleibt #1 blockiert.

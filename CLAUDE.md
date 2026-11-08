@@ -21,6 +21,7 @@ All custom items use the `c-{org}-{type}-{name}` prefix convention
 | `c-bpm-cm-spec-oneshot` | command | Write or version a one-shot specification under `/specification/` plus the overnight build prompt under `/prompts/`. Rob is asked at most one grilling round; everything else is decided in the spec or delegated to Codex. |
 | `c-bpm-sk-gogo` | skill | Unattended overnight run: implements every ready, unblocked ticket of the current repo with an agent team and Codex reviews (`TEAMMATE.md` is the teammate contract). |
 | `c-bpm-sk-next-step` | skill | Every answer ends with exactly one action line naming who acts: "Robert, du bist dran: …" (step chosen via ask-matt) or "Claude ist dran, du musst nichts tun: …"; running agents get a `CronCreate` watchdog loop that checks at least every 5 minutes. |
+| `c-bpm-sk-next-step-admin` | skill | Admin-host variant of `c-bpm-sk-next-step`: the step comes from the open issues of the host repo named in `my/hosts/<hostname>/next-step-admin` and the current admin work, never from ask-matt. A host gets exactly one of the two; `lib.sh` (`host_skipped_item`) makes pull, push and compare skip the other. |
 | `c-bpm-cm-pocock-update` | command | Manual, immediate run of `c-bpm-hk-skills-refresh.sh` (`update`, `check`, `unlock`): update the Pocock plugin and strip `disable-model-invocation: true` from every installed SKILL.md so Claude can call the skills itself. |
 | `c-bpm-cm-library-pull` / `c-bpm-cm-library-push` / `c-bpm-cm-library-compare` | command + CLI | Sync `my/` items between this repo and `~/.claude/`. |
 | `c-bpm-hk-agent-cleanup-guard` | hook | Stops a teammate as soon as it finishes its turn (`TeammateIdle` → `continue: false`), shows the user what is still running at every turn end (`Stop`, from `background_tasks`), asks once for `TaskStop` on open teammates and shells, and demands an agent sweep at `SessionStart`. |
@@ -49,7 +50,7 @@ bpm-claude-global-agent-skill-library/
 │   ├── agents/              # c-bpm-ag-<name>.md (currently empty)
 │   ├── hooks/               # c-bpm-hk-<name>.sh + c-bpm-hooks.json (settings fragment)
 │   ├── mods/                # Claude Code mods (hooks modules), loaded from here
-│   └── hosts/<host>/        # per-host inventory, written by the sync scripts
+│   └── hosts/<host>/        # per-host inventory (sync scripts) + next-step-admin marker (admin hosts)
 ├── c-bpm-cm-library-pull    # repo -> ~/.claude/
 ├── c-bpm-cm-library-push    # ~/.claude/ -> repo (commits and pushes)
 ├── c-bpm-cm-library-compare # diff both sides, --repair

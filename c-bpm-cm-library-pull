@@ -141,6 +141,15 @@ fi
 # Prune stale sync state entries (items no longer in repo)
 prune_sync_state "$REPO_DIR/my"
 
+# Host variant (#195): which next-step skill this host does not install
+HOST_SKIPPED="$(host_skipped_item "$REPO_DIR")"
+HOST_ADMIN_REPO="$(host_admin_repo "$REPO_DIR")"
+if [[ -n "$HOST_ADMIN_REPO" ]]; then
+  echo "Host variant: admin host (host repo $HOST_ADMIN_REPO), skipping $HOST_SKIPPED"
+else
+  log_verbose "Host variant: development host, skipping $HOST_SKIPPED"
+fi
+
 # Step 4: Compare and sync each category
 NEW_COUNT=0
 MODIFIED_COUNT=0
@@ -171,6 +180,18 @@ for category in "${CATEGORIES[@]}"; do
       item_name=$(basename "$item_dir")
       local_item="$LOCAL_CAT_DIR/$item_name"
       item_key="$category/$item_name"
+
+      # The other host variant: never installed here, a stale copy is removed
+      if [[ "$item_key" == "$HOST_SKIPPED" ]]; then
+        if [[ -d "$local_item" ]]; then
+          echo "  - $item_key (other host variant, removed locally)"
+          if [[ "$DRY_RUN" -eq 0 ]]; then
+            rm -rf "$local_item"
+            unset 'SYNC_STATE[$item_key]'
+          fi
+        fi
+        continue
+      fi
 
       if [[ ! -d "$local_item" ]]; then
         echo "  + $item_key (new)"
@@ -372,6 +393,7 @@ if [[ "$DRY_RUN" -eq 0 ]]; then
       for item_dir in "$REPO_CAT_DIR"/"${cat_prefix}"-*/; do
         [[ -d "$item_dir" ]] || continue
         item_name="$(basename "$item_dir")"
+        [[ "$category/$item_name" == "$HOST_SKIPPED" ]] && continue
         [[ -d "$TARGET_DIR/$category/$item_name" ]] || DRIFT+=("$category/$item_name")
       done
     else

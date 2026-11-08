@@ -116,6 +116,8 @@ log_verbose "Categories: ${CATEGORIES[*]}"
 echo "c-bpm-cm-library-compare v$VERSION"
 echo ""
 
+HOST_SKIPPED="$(host_skipped_item "$REPO_DIR")"
+
 # Verify repo exists
 if [[ ! -d "$REPO_DIR/.git" ]]; then
   echo "ERROR: Repository not found at $REPO_DIR"
@@ -182,6 +184,8 @@ for category in "${CATEGORIES[@]}"; do
   # Compare each item
   for item_name in $(echo "${!all_items[@]}" | tr ' ' '\n' | sort); do
     item_key="$category/$item_name"
+    # Host variant (#195): the next-step skill this host does not install
+    [[ "$item_key" == "$HOST_SKIPPED" ]] && continue
     in_local="${local_items[$item_name]:-}"
     in_repo="${repo_items[$item_name]:-}"
 

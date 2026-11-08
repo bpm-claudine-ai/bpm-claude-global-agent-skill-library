@@ -91,6 +91,29 @@ Restart Claude Code after the first pull so the registration is loaded. The
 cleanup hook writes every payload it sees, without the assistant's text, to
 `~/.claude/hooks/c-bpm-hk-agent-cleanup-guard.log`. Both logs are capped at 256 KiB.
 
+### Host variants
+
+The next-step line exists in two variants, and each host gets exactly one:
+`c-bpm-sk-next-step` (development hosts, step chosen via ask-matt) or
+`c-bpm-sk-next-step-admin` (admin hosts, step from the open issues of the
+host's repo). A host is an admin host when the file
+`my/hosts/<hostname>/next-step-admin` exists in this repo; its first
+`owner/name` line is the host repo, e.g. `BPMspaceUG/bpm-contabo04` for
+contabo04. To make a host an admin host, commit that file here and run
+`c-bpm-cm-library-pull` there:
+
+```bash
+mkdir -p my/hosts/<hostname> && echo '<owner>/<repo>' > my/hosts/<hostname>/next-step-admin
+```
+
+`c-bpm-cm-library-pull` then installs the admin variant and removes the
+regular one (and the other way round when the file is deleted).
+`c-bpm-cm-library-push` and `c-bpm-cm-library-compare` skip the variant a host
+does not use, so `push --clean` never deletes it from the repo. The selection
+lives in `lib.sh` (`host_admin_repo`, `host_skipped_item`). Hooks and mod parse
+both variants' lines; the corpus `tests/fixtures/next-step-lines.tsv` holds
+real lines of both.
+
 ### The mod
 
 `my/mods/c-bpm-md-last-recommendation` is a Claude Code mod (hooks module,
@@ -145,6 +168,7 @@ done
 | `c-bpm-cm-spec-oneshot` | `/c-bpm-cm-spec-oneshot [major\|minor\|patch]` | Write or version a self-contained specification under `/specification/` and the overnight build prompt under `/prompts/`. One optional grilling round with Rob; every other open point is decided in the spec or delegated to Codex. |
 | `c-bpm-sk-gogo` | `/c-bpm-sk-gogo [spec issue \| label]` | Unattended overnight run over the ready, unblocked tickets of the current repo: agent team, one worktree per ticket, Codex plan and implementation reviews, draft PR per integration branch. `TEAMMATE.md` is the teammate contract. |
 | `c-bpm-sk-next-step` | model-invoked (also `/c-bpm-sk-next-step`) | Ends every answer with exactly one action line naming who acts: "Robert, du bist dran: …" (step chosen via ask-matt) or "Claude ist dran, du musst nichts tun: …" with the next watchdog check time. Running agents get a `CronCreate` watchdog loop that checks at least every 5 minutes. |
+| `c-bpm-sk-next-step-admin` | model-invoked (also `/c-bpm-sk-next-step-admin`) | Admin-host variant of `c-bpm-sk-next-step`, installed instead of it where `my/hosts/<hostname>/next-step-admin` names the host repo: the step comes from that repo's open issues and the current admin work, never from ask-matt; the line names the issue (`#n`) and gives the reason after "Grund:". See "Host variants". |
 | `c-bpm-cm-pocock-update` | `/c-bpm-cm-pocock-update [--check] [--no-update]` | Manual, immediate Pocock update and unlock; the `c-bpm-hk-skills-refresh` hook does the same at session start. |
 | `c-bpm-cm-library-pull` | `/c-bpm-cm-library-pull` or the CLI | Sync c-bpm items from this repo into `~/.claude/` |
 | `c-bpm-cm-library-push` | `/c-bpm-cm-library-push` or the CLI | Sync c-bpm items from `~/.claude/` into this repo; auto-commits and pushes |
@@ -176,7 +200,7 @@ last sync is flagged and skipped rather than silently overwritten.
 | Scenario | Pull | Push |
 |----------|------|------|
 | Only repo changed | Updates local | — |
-| Only local changed | — | Updates repo |
+| Only local changed | Updates local (repo wins) | Updates repo |
 | Both changed | **CONFLICT** (skipped) | **CONFLICT** (skipped) |
 | Both changed + `--force` | Repo wins | Local wins |
 | No baseline (first sync) | Updates local | Updates repo |
@@ -193,7 +217,7 @@ git config core.hooksPath .githooks  # once per clone: pre-push runs both
 The suite is offline and deterministic. It covers the installer and sync
 scripts (`install.bats`, `sync-dedup.bats`, `sync-only-flags.bats`,
 `bpm-bootstrap.bats`, `c-bpm-cm-library-compare.bats`,
-`c-bpm-hosts-inventory.bats`), drift guards over this README
+`c-bpm-hosts-inventory.bats`, `c-bpm-host-variant.bats`), drift guards over this README
 (`readme-guards.bats`), content guards over the custom items
 (`c-bpm-items.bats`) and the agent cleanup hook with its installation
 (`c-bpm-hk-agent-cleanup-guard.bats`), the skills refresh hook (`c-bpm-hk-skills-refresh.bats`) the ask-matt-after-clear hook and the mod's line parser against real next-step lines in `tests/fixtures/next-step-lines.tsv` (`c-bpm-hk-ask-matt-after-clear.bats`) the ask-matt read guard (`c-bpm-hk-ask-matt-read-guard.bats`), and the pre-push hook and live-test helper (`guardrails.bats`).

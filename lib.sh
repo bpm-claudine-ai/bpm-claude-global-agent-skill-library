@@ -431,6 +431,41 @@ validate_extracted_dir() {
   return 0
 }
 
+# Host variants (#195). The next-step line exists in two variants, and a host
+# installs exactly one of them:
+#   c-bpm-sk-next-step        development hosts (step chosen via ask-matt), default
+#   c-bpm-sk-next-step-admin  admin hosts (step from the host repo's open issues)
+# A host is an admin host when my/hosts/<hostname>/next-step-admin exists; its
+# first matching line names the host repo as owner/name. Pull, push and compare
+# all skip the variant this host does not use, so a pull never installs it and a
+# push --clean never deletes it from the repo.
+NEXT_STEP_ADMIN_FILE="next-step-admin"
+
+# Print the host repo (owner/name) of an admin host, nothing otherwise.
+# Usage: host_admin_repo "/path/to/repo"
+host_admin_repo() {
+  local f
+  f="$1/my/hosts/$(hostname)/$NEXT_STEP_ADMIN_FILE"
+  [[ -f "$f" ]] || return 0
+  grep -m1 -E '^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$' "$f" || true
+}
+
+# Print the item key (category/name) that this host does not install.
+# Usage: host_skipped_item "/path/to/repo"
+host_skipped_item() {
+  if [[ -n "$(host_admin_repo "$1")" ]]; then
+    echo "skills/${ITEM_PREFIX}-${ORG_PREFIX}-sk-next-step"
+  else
+    echo "skills/${ITEM_PREFIX}-${ORG_PREFIX}-sk-next-step-admin"
+  fi
+}
+
+# True when this host does not install the item.
+# Usage: is_host_skipped "/path/to/repo" "skills/c-bpm-sk-next-step"
+is_host_skipped() {
+  [[ "$2" == "$(host_skipped_item "$1")" ]]
+}
+
 # Write host inventory to my/hosts/<HOSTNAME>/
 # Records which c-bpm items are installed on this host
 # Usage: write_host_inventory "/path/to/repo" "/path/to/claude-dir"
